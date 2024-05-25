@@ -30,9 +30,9 @@ def test_function():
             }
     return response  
     
-@app.route("/snap", methods=["GET"])
+@app.route("/snap", methods=["POST"])
 def snap_function():
-    camera = Picamera2()
+    camera = Picamera2() # ***
     camera.start_preview()
     sleep(3) # 카메라 작동 시작 3초 후에 촬영
     camera.capture('/home/pi/snaptest/image.jpg')
