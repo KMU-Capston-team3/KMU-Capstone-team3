@@ -1,6 +1,7 @@
 from flask import Flask, request
+from picamera2 import Picamera2
+from time import sleep
 import sys
-import jsonify
 import RPi.GPIO as GPIO
 
 GPIO.setmode(GPIO.BCM)
@@ -28,6 +29,15 @@ def test_function():
             }
             }
     return response  
+    
+@app.route("/snap", methods=["POST"])
+def snap_function():
+    camera = Picamera2() # ***
+    camera.start_preview()
+    sleep(3) # 카메라 작동 시작 3초 후에 촬영
+    camera.capture('/home/pi/snaptest/image.jpg')
+    camera.stop_preview()
+    return "Snapped!"
 
 @app.route("/led", methods=["GET"])
 def led_function():
