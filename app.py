@@ -1,5 +1,5 @@
 from flask import Flask, request
-from picamera2 import Picamera2
+from picamera2 import Picamera2, preview
 from time import sleep
 import sys
 import RPi.GPIO as GPIO
@@ -32,11 +32,14 @@ def test_function():
     
 @app.route("/snap", methods=["POST"])
 def snap_function():
-    camera = Picamera2() # ***
-    camera.start_preview()
-    sleep(3) # 카메라 작동 시작 3초 후에 촬영
-    camera.capture('/home/pi/snaptest/image.jpg')
-    camera.stop_preview()
+    cam = Picamera2() 
+    camera_config = cam.create_preview_configuration()
+    cam.configure(camera_config)
+    cam.start_preview(Preview.QTGL)
+    cam.start()
+    time.sleep(3)
+    cam.capture_file("image.jpg")
+    cam.stop_preview()
     return "Snapped!"
 
 @app.route("/led", methods=["GET"])
