@@ -1,3 +1,6 @@
+# 라이브러리 다운
+pip install flask opencv-python-headless pytesseract boto3
+
 from flask import Flask, send_file, jsonify
 import cv2
 import boto3
