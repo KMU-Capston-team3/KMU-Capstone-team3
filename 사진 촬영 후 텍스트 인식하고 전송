@@ -1,0 +1,50 @@
+from flask import Flask, send_file, jsonify
+from picamera2 import Picamera2
+import boto3
+from botocore.exceptions import NoCredentialsError
+import time
+
+app = Flask(__name__)
+
+# 이미지 파일 경로 및 AWS S3 버킷 이름
+image_path = "/home/pi/captured_image.jpg"
+bucket_name = "your-s3-bucket-name"
+
+def capture_image(image_path):
+    """라즈베리 파이 카메라로 사진 촬영"""
+    picam2 = Picamera2()
+    picam2.start()
+    time.sleep(2)  # 카메라 워밍업 시간
+    picam2.capture_file(image_path)
+    picam2.close()
+
+def upload_to_s3(file_name, bucket, object_name=None):
+    """AWS S3에 이미지 파일 업로드"""
+    s3_client = boto3.client('s3')
+    try:
+        s3_client.upload_file(file_name, bucket, object_name or file_name)
+    except FileNotFoundError:
+        print("The file was not found")
+        return None
+    except NoCredentialsError:
+        print("Credentials not available")
+        return None
+    return f"https://{bucket}.s3.amazonaws.com/{object_name or file_name}"
+
+@app.route('/capture', methods=['GET'])
+def capture_and_send():
+    """사진을 촬영하고 S3에 업로드한 후, 클라이언트에게 직접 전송"""
+    # 사진 촬영
+    capture_image(image_path)
+
+    # S3에 업로드
+    image_url = upload_to_s3(image_path, bucket_name)
+
+    if image_url:
+        # 이미지 파일을 클라이언트에게 직접 전송
+        return send_file(image_path, mimetype='image/jpeg')
+    else:
+        return jsonify({'error': 'Failed to upload image'}), 500
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
