@@ -1,17 +1,19 @@
-from flask import Flask, request
-from routes.test import test_bp
+from flask import Flask
 from routes.snap import snap_bp
 from routes.stream import stream_bp
+from config import Config
 
-app = Flask(__name__)
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object(Config)
 
-app.register_blueprint(test_bp)
-app.register_blueprint(snap_bp)
-app.register_blueprint(stream_bp)
+    app.register_blueprint(snap_bp, url_prefix='/snap')
+    app.register_blueprint(stream_bp, url_prefix='/stream')
 
-@app.route('/')
-def hello():
-    return 'Hello, World'
+    return app
 
-if __name__ == "__main__":
-    app.run(port=8000,host='0.0.0.0')
+app = create_app()
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8000, threaded=True)
+
