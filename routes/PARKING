@@ -1,0 +1,113 @@
+from flask import Flask, send_file, jsonify
+import cv2
+import boto3
+from botocore.exceptions import NoCredentialsError
+import pytesseract
+import time
+import numpy as np
+
+app = Flask(__name__)
+
+# 이미지 파일 경로 및 AWS S3 버킷 이름
+image_path = "/home/pi/captured_image.jpg"
+result_image_path = "/home/pi/result_image.jpg"
+bucket_name = "your-s3-bucket-name"
+
+# AWS 자격 증명 설정 (필요 시 환경 변수 또는 다른 방법을 통해 설정 가능)
+aws_access_key_id = "YOUR_AWS_ACCESS_KEY_ID"
+aws_secret_access_key = "YOUR_AWS_SECRET_ACCESS_KEY"
+
+def capture_image(image_path):
+    cap = cv2.VideoCapture(0)
+    time.sleep(2)  # 카메라 워밍업 시간
+    ret, frame = cap.read()
+    if ret:
+        cv2.imwrite(image_path, frame)  # 프레임을 이미지 파일로 저장
+    cap.release()
+
+def upload_to_s3(file_name, bucket, object_name=None):
+    """AWS S3에 이미지 파일 업로드"""
+    s3_client = boto3.client(
+        's3',
+        aws_access_key_id=aws_access_key_id,
+        aws_secret_access_key=aws_secret_access_key
+    )
+    try:
+        s3_client.upload_file(file_name, bucket, object_name or file_name)
+    except FileNotFoundError:
+        print("The file was not found")
+        return None
+    except NoCredentialsError:
+        print("Credentials not available")
+        return None
+    return f"https://{bucket}.s3.amazonaws.com/{object_name or file_name}"
+
+def preprocess_image(image):
+    # 이미지를 밝게 변환
+    image = cv2.convertScaleAbs(image, alpha=1.5, beta=50)
+    
+    # 그레이스케일 변환
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    
+    # 히스토그램 평활화
+    gray = cv2.equalizeHist(gray)
+    
+    # 가우시안 블러
+    gray = cv2.GaussianBlur(gray, (5, 5), 0)
+    
+    # 어댑티브 스레싱
+    binary = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                   cv2.THRESH_BINARY_INV, 11, 2)
+    
+    return binary
+
+def recognize_text_and_find_empty_spaces(image_path):
+    image = cv2.imread(image_path)
+    
+    # 이미지 전처리
+    binary = preprocess_image(image)
+    
+    # 텍스트 인식
+    custom_config = r'--oem 3 --psm 6'
+    data = pytesseract.image_to_data(binary, config=custom_config, output_type=pytesseract.Output.DICT)
+    
+    # 텍스트 테두리 그리기
+    n_boxes = len(data['level'])
+    for i in range(n_boxes):
+        (x, y, w, h) = (data['left'][i], data['top'][i], data['width'][i], data['height'][i])
+        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+    
+    # 빈자리 감지 (단순히 텍스트가 없는 영역 찾기)
+    contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    empty_spaces = []
+    for contour in contours:
+        x, y, w, h = cv2.boundingRect(contour)
+        # 특정 크기 이상의 빈 영역만 감지
+        if w * h > 1000:
+            empty_spaces.append((x, y, w, h))
+            cv2.rectangle(image, (x, y), (x + w, y + h), (255, 0, 0), 2)
+    
+    # 결과 이미지 저장
+    cv2.imwrite(result_image_path, image)
+    
+    return result_image_path, data['text']
+
+@app.route('/capture', methods=['GET'])
+def capture_and_send():
+    # 사진 촬영
+    capture_image(image_path)
+    
+    # 텍스트 인식 및 빈자리 감지
+    result_image_path, recognized_text = recognize_text_and_find_empty_spaces(image_path)
+
+    # S3에 업로드
+    image_url = upload_to_s3(result_image_path, bucket_name)
+
+    if image_url:
+        # 이미지 파일 URL과 인식된 텍스트를 JSON 응답으로 전송
+        return jsonify({'image_url': image_url, 'recognized_text': recognized_text})
+    else:
+        return jsonify({'error': 'Failed to upload image'}), 500
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
