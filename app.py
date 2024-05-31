@@ -1,6 +1,7 @@
 from flask import Flask
 from routes.snap import snap_bp
 from routes.stream import stream_bp
+from routes.space import space_bp
 from config import Config
 
 def create_app():
@@ -9,7 +10,7 @@ def create_app():
 
     app.register_blueprint(snap_bp, url_prefix='/snap')
     app.register_blueprint(stream_bp, url_prefix='/stream')
-
+    app.register_blueprint(space_bp, url_prefix='/space')
     return app
 
 app = create_app()
