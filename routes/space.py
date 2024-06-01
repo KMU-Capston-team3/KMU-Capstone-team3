@@ -16,9 +16,8 @@ img_mask = cv2.inRange(img_hsv, lower_blue, upper_blue)
 img_result = cv2.bitwise_and(img_blur, img_blur, mask = img_mask)
 print(pytesseract.image_to_string(img_result, config = '--psm 6'))
 
-cv2.imshow('img_color', img_blur)
-cv2.imshow('img_mask', img_mask)
-cv2.imshow('img_color', img_result)
+# cv2.imshow('img_mask', img_mask) masking 된 이미지 표시
+# cv2.imshow('img_color', img_result) bitwise 연산으로 이진화된 이미지 표시
 	
 cv2.waitKey(0)
 cv2.destroyAllWindows()
