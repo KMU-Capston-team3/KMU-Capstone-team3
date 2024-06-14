@@ -7,6 +7,7 @@ import cv2
 
 space_bp = Blueprint('space', __name__)
 
+# 빈자리 요청 route
 @space_bp.route("/", methods=["POST"])
 def space_function():
     with lock:
@@ -14,7 +15,7 @@ def space_function():
         image_path = os.path.join(current_app.config['IMAGE_FOLDER'], f'image_{timestamp}.jpg')
         camera.capture_file(image_path)
     
-
+    # 저장된 image 를 바탕으로 이미지 처리
     img_color = cv2.imread(image_path)
     img_blur = cv2.GaussianBlur(img_color, (15, 15), 0)
     height, width = img_blur.shape[:2]
@@ -28,7 +29,8 @@ def space_function():
  
     # cv2.imshow('img_mask', img_mask) masking 된 이미지 표시
     # cv2.imshow('img_color', img_result) bitwise 연산으로 이진화된 이미지 표시
-	   
+	  
+    # 이미지 처리 후 이미지에서 텍스트 추출함
     empty_space = pytesseract.image_to_string(img_result, config='--psm 6')
 
     return {
@@ -43,9 +45,3 @@ def space_function():
         ]
     }
             }
-#    print(pytesseract.image_to_string(img_result, config = '--psm 6'))
-
-    # cv2.imshow('img_mask', img_mask) masking 된 이미지 표시
-    # cv2.imshow('img_color', img_result) bitwise 연산으로 이진화된 이미지 표시
-
-	
