@@ -1,6 +1,6 @@
 from flask import Blueprint, Response, render_template_string
 import cv2
-from camera_manager import camera, lock
+from utils.camera_manager import camera, lock
 import threading
 import time
 
@@ -24,7 +24,7 @@ def gen_frames():
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 @stream_bp.route('/')
-def video_feed():
+def get_stream():
     # 만들어진 프레임으로 응답을 만듬
     return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 

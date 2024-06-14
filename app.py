@@ -1,7 +1,7 @@
 from flask import Flask
-from routes.snap import snap_bp
+from routes.capture import capture_bp
 from routes.stream import stream_bp
-from routes.space import space_bp
+from routes.empty_space import empty_space_bp
 from config import Config
 
 # 서버 객체 초기화
@@ -10,9 +10,9 @@ def create_app():
     app.config.from_object(Config)
 
     # route 정의
-    app.register_blueprint(snap_bp, url_prefix='/snap')
+    app.register_blueprint(capture_bp, url_prefix='/capture')
     app.register_blueprint(stream_bp, url_prefix='/stream')
-    app.register_blueprint(space_bp, url_prefix='/space')
+    app.register_blueprint(empty_space_bp, url_prefix='/empty_space')
     return app
 
 app = create_app()

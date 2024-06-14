@@ -1,21 +1,19 @@
 from flask import Blueprint, current_app
-from camera_manager import lock, camera
-from datetime import datetime
+from utils.capture import capture_and_save
 import os
 import pytesseract
 import cv2
 
-space_bp = Blueprint('space', __name__)
+empty_space_bp = Blueprint('empty_space', __name__)
 
 # 빈자리 요청 route
-@space_bp.route("/", methods=["POST"])
-def space_function():
-    with lock:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        image_path = os.path.join(current_app.config['IMAGE_FOLDER'], f'image_{timestamp}.jpg')
-        camera.capture_file(image_path)
-    
+@empty_space_bp.route("/", methods=["POST"])
+def get_empty_space():
+   
+    filename = capture_and_save() 
     # 저장된 image 를 바탕으로 이미지 처리
+    image_path = os.path.join(current_app.config['IMAGE_FOLDER'], filename)
+
     img_color = cv2.imread(image_path)
     img_blur = cv2.GaussianBlur(img_color, (15, 15), 0)
     height, width = img_blur.shape[:2]
