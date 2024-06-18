@@ -24,7 +24,7 @@ def gen_frames():
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 @stream_bp.route('/')
-def get_stream():
+def get_stream_handler():
     # 만들어진 프레임으로 응답을 만듬
     return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
