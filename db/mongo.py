@@ -1,8 +1,14 @@
 from pymongo import MongoClient
 from datetime import datetime, timedelta
+from dotenv import load_dotenv
 import random
+import os
+# mongodb local
+#client = MongoClient('localhost', 27017)
 
-# mongodb 
-client = MongoClient('localhost', 27017)
-db = client.flask_db
-collection = db.empty_space_numbers
+load_dotenv()
+
+# mongodb atlas
+client = MongoClient(os.environ.get("MONGO_URI"))
+db = client.empty_space_numbers
+collection = db.real
