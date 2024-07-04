@@ -4,24 +4,26 @@ import os
 import pytesseract
 import cv2
 import numpy as np
+import requests
 
 def get_empty_space():
     filename = capture_and_save() 
-    # 저장된 image 를 바탕으로 이미지 처리
-    image_path = os.path.join(current_app.config['IMAGE_FOLDER'], filename)
 
-    img_color = cv2.imread(image_path)
+    # image url을 바탕으로 이미지 처리
+    img_nparray = np.asarray(bytearray(requests.get("https://ifh.cc/g/WaSlKZ.jpg").content), dtype = np.uint8)
+    img_color = cv2.imdecode(img_nparray, cv2.IMREAD_COLOR)
+
     height, width = img_color.shape[0:2]
     center = (height / 2, width / 2)
 
     # 각도 지정 (변경)
-    angle = -45
+    angle = -30
 
     M = cv2.getRotationMatrix2D(center, angle , 1.0)
     img_rotated = cv2.warpAffine(img_color, M, (width, height))
 
     # 투시변환 기준점 4개 지정
-    src_points = np.float32([[304, 388], [2456, 960], [120, 1796], [2776, 2024]])
+    src_points = np.float32([[47, 552], [1457, 539], [172, 1450], [1833, 1152]])
     dst_points = np.float32([[0, 0], [width, 0], [0, height], [width, height]])
 
     # 회전 행렬 구한 뒤 이미지 회전
