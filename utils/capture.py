@@ -24,6 +24,6 @@ def capture_and_save():
 
     
     s3.upload_file(image_path, os.environ.get("BUCKET_NAME"), filename)
-    image_url = f"https://{os.environ.get("BUCKET_NAME")}.s3.ap-northeast-2.amazonaws.com/{filename}"
+    image_url = f"https://{os.environ.get('BUCKET_NAME')}.s3.ap-northeast-2.amazonaws.com/{filename}"
     os.remove(image_path)
     return image_url

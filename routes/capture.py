@@ -1,6 +1,5 @@
 from flask import Blueprint, send_file, url_for, current_app
 from utils.capture import capture_and_save
-import os
 
 capture_bp = Blueprint('capture', __name__)
 

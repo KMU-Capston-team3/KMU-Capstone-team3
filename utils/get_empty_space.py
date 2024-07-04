@@ -7,10 +7,10 @@ import numpy as np
 import requests
 
 def get_empty_space():
-    filename = capture_and_save() 
+    image_url = capture_and_save() 
 
     # image url을 바탕으로 이미지 처리
-    img_nparray = np.asarray(bytearray(requests.get("https://ifh.cc/g/WaSlKZ.jpg").content), dtype = np.uint8)
+    img_nparray = np.asarray(bytearray(requests.get("https://park-awss3-bucket.s3.ap-northeast-2.amazonaws.com/test45.jpg").content), dtype = np.uint8)
     img_color = cv2.imdecode(img_nparray, cv2.IMREAD_COLOR)
 
     height, width = img_color.shape[0:2]
