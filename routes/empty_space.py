@@ -1,12 +1,18 @@
-from flask import Blueprint, current_app, request
+from flask import Blueprint
 from utils.get_empty_space import get_empty_space
 from db.mongo import collection
 from db.pipeline import pipeline
-import joblib
 import numpy as np
+from datetime import datetime
+from utils.holiday import is_holiday
+import pickle
+import json
 
 empty_space_bp = Blueprint('empty_space', __name__)
-model = joblib.load('parking_model.pkl')
+
+with open('parking_model.pkl', 'rb') as file:
+    model, scaler = pickle.load(file)
+
 # 빈자리 요청 route
 @empty_space_bp.route("/", methods=["POST"])
 def get_empty_space_handler():
@@ -32,37 +38,42 @@ def get_empty_space_average():
 
 @empty_space_bp.route("/predict", methods=["POST"])
 def predict_empty_space_handler():
-    hour = request.args.get('hour', default=None, type=int)
-    day_of_week = request.args.get('day_of_week', default=None, type=int)
-    is_holiday = request.args.get('is_holiday', default=0, type=int)
-
-    if hour is None or hour < 0 or hour >= 24:
-        return {
-            "error": "invalid hour"
-        }
-    if day_of_week is None or day_of_week < 0 or day_of_week >= 7:
-        return {
-            "error": "invalid day"
-        }
-    
-    prediction = predict_empty_space(hour, day_of_week, is_holiday)
+    predicted_val = []
+    current_date = datetime.now()
+    day_of_week = current_date.weekday()
+    is_holiday_param = is_holiday(current_date)
+    for hour in range(0,24):
+        prediction = predict_empty_space(hour, day_of_week, is_holiday_param)
+        predicted_val.append({
+            "hour": hour,
+            "empty_space": prediction
+        })
+    texts = [f"{obj['hour']}시 => 빈자리: {obj['empty_space']}" for obj in predicted_val]
 
     return {
-        "hour": hour,
-        "day_of_week": day_of_week,
-        "is_holiday": is_holiday,
-        "predicted_average_number": prediction
-    }
-
+            "version": "2.0",
+            "template": {
+            "outputs": [
+                        {
+                    "simpleText": {
+                        "text": "\n=================".join(texts) 
+                    }
+                        }
+                    ]
+                }
+            }
 def predict_empty_space(hour, day_of_week, is_holiday):
-    is_weekend = 1 if day_of_week >= 5 else 0
-    features = np.array([[hour, day_of_week, is_weekend, is_holiday]])
-    prediction = model.predict(features)
-    return prediction[0]
+
+    is_weekend_value = 1 if day_of_week >= 5 else 0
+
+    X_new = [[hour, day_of_week, is_weekend_value, is_holiday]]
+    X_new_scaled = scaler.transform(X_new)
+    prediction = model.predict(X_new_scaled)
+
+    return round(prediction[0])
 
 def get_empty_space_number():
     empty_space = get_empty_space()
     print("실행")
     print(empty_space)
     return len(empty_space.split(" "))
-                    
