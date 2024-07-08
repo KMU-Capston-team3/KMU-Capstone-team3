@@ -5,8 +5,9 @@ from db.pipeline import pipeline
 import numpy as np
 from datetime import datetime
 from utils.holiday import is_holiday
+from utils.format import format_empty_space, format_predicted_space
 import pickle
-import json
+
 
 empty_space_bp = Blueprint('empty_space', __name__)
 
@@ -17,13 +18,15 @@ with open('parking_model.pkl', 'rb') as file:
 @empty_space_bp.route("/", methods=["POST"])
 def get_empty_space_handler():
     empty_space = get_empty_space()
+    template = format_empty_space(empty_space)
+    
     return {
         "version": "2.0",
         "template": {
         "outputs": [
             {
                 "simpleText": {
-                    "text": f"빈자리 : {empty_space}" 
+                    "text": template
                 }
             }
         ]
@@ -48,7 +51,7 @@ def predict_empty_space_handler():
             "hour": hour,
             "empty_space": prediction
         })
-    texts = [f"{obj['hour']}시 => 빈자리: {obj['empty_space']}" for obj in predicted_val]
+    template = format_predicted_space(predicted_val)
 
     return {
             "version": "2.0",
@@ -56,7 +59,7 @@ def predict_empty_space_handler():
             "outputs": [
                         {
                     "simpleText": {
-                        "text": "\n=================".join(texts) 
+                        "text": template 
                     }
                         }
                     ]
