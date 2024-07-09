@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_apscheduler import APScheduler
+from routes.intro import intro_bp
 from routes.capture import capture_bp
 from routes.stream import stream_bp
 from routes.empty_space import empty_space_bp, get_empty_space_number
@@ -14,6 +15,7 @@ def create_app():
 
 
     # route 정의
+    app.register_blueprint(intro_bp, url_prefix='/intro')
     app.register_blueprint(capture_bp, url_prefix='/capture')
     app.register_blueprint(stream_bp, url_prefix='/stream')
     app.register_blueprint(empty_space_bp, url_prefix='/empty_space')
