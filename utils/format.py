@@ -50,7 +50,7 @@ def format_predicted_space(predicted_val):
         f"    {current_date}\n"
         "------------------------------\n\n"
         f"{table_str}\n\n"
-        "전체 자리 수: 23\n"
+        "전체 자리 수: 22\n"
         "------------------------------"
     )
     
