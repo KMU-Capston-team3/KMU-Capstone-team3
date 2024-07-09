@@ -30,15 +30,15 @@ scheduler = APScheduler()
 scheduler.init_app(app)
 scheduler.start()
 
-# @scheduler.task('interval', id='job_get_empty_space_number', seconds=10)
-# def scheduled_task():
-#     with app.app_context():
-#         empty_space_number = get_empty_space_number()
-#         result = mongo.collection.insert_one({
-#             "number": empty_space_number,
-#             "created_at": datetime.now()
-#         })
-#         return str(result.inserted_id)
+@scheduler.task('interval', id='job_get_empty_space_number', minutes=30)
+def scheduled_task():
+    with app.app_context():
+        empty_space_number = get_empty_space_number()
+        result = mongo.collection.insert_one({
+            "empty_space": empty_space_number,
+            "created_at": datetime.now()
+        })
+        return str(result.inserted_id)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000, threaded=True)
