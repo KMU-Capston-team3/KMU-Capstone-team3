@@ -2,11 +2,10 @@ from prettytable import PrettyTable
 from datetime import datetime
 import re
 
-def format_empty_space(slot_text):
+def format_empty_space(empty_space):
     current_date = datetime.now().strftime('%Y-%m-%d')
-    split_parking_space = re.findall(r'\d{2}', slot_text)
-    split_parking_space = ' '.join(split_parking_space)
-    slots = split_parking_space.split()
+    split_parking_space = re.findall(r'\d{2}', ' '.join(empty_space))
+    slots = split_parking_space
     
     rows = [slots[i:i+2] for i in range(0, len(slots), 2)]
     

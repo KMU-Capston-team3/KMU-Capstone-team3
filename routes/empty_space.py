@@ -1,5 +1,5 @@
 from flask import Blueprint
-from utils.get_empty_space import get_empty_space
+from utils.get_empty_space import get_empty_space, vision_api
 from db.mongo import collection
 from db.pipeline import pipeline
 import numpy as np
@@ -17,7 +17,8 @@ with open('parking_model.pkl', 'rb') as file:
 # 빈자리 요청 route
 @empty_space_bp.route("/", methods=["POST"])
 def get_empty_space_handler():
-    empty_space = get_empty_space()
+    # empty_space = get_empty_space()
+    empty_space = vision_api()
     template = format_empty_space(empty_space)
     
     return {
