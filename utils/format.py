@@ -23,7 +23,7 @@ def format_empty_space(empty_space):
 
         "------------------------------\n\n"
         f"{table_str}\n"
-        "\n전체 자리 수: 23\n"
+        "\n전체 자리 수: 22\n"
         "------------------------------"
     )
     
@@ -56,4 +56,3 @@ def format_predicted_space(predicted_val):
     
     return template
     
-    return template

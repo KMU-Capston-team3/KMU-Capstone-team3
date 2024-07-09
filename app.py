@@ -32,7 +32,7 @@ scheduler = APScheduler()
 scheduler.init_app(app)
 scheduler.start()
 
-@scheduler.task('interval', id='job_get_empty_space_number', minutes=30)
+@scheduler.task('interval', id='job_get_empty_space_number', minutes=5)
 def scheduled_task():
     with app.app_context():
         empty_space_number = get_empty_space_number()

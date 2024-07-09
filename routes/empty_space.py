@@ -1,5 +1,5 @@
 from flask import Blueprint
-from utils.get_empty_space import get_empty_space, vision_api
+from utils.get_empty_space import get_empty_space
 from db.mongo import collection
 from db.pipeline import pipeline
 import numpy as np
@@ -17,8 +17,7 @@ with open('parking_model.pkl', 'rb') as file:
 # 빈자리 요청 route
 @empty_space_bp.route("/", methods=["POST"])
 def get_empty_space_handler():
-    # empty_space = get_empty_space()
-    empty_space = vision_api()
+    empty_space = get_empty_space()
     template = format_empty_space(empty_space)
     
     return {
@@ -78,6 +77,6 @@ def predict_empty_space(hour, day_of_week, is_holiday):
 
 def get_empty_space_number():
     empty_space = get_empty_space()
-    print("실행")
+    print("cronjob: 주차장 데이터 삽입 run")
     print(empty_space)
-    return len(empty_space.split(" "))
+    return len(empty_space)
